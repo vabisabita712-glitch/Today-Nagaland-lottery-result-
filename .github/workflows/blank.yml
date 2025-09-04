@@ -1,0 +1,40 @@
+name: Update Lottery Results
+
+on:
+  schedule:
+    - cron: '0 6,12,18 * * *' # এই লাইনটি প্রতিদিন সকাল 6টা, দুপুর 12টা এবং সন্ধ্যা 6টায় (UTC) স্ক্রিপ্টটি চালাবে।
+  workflow_dispatch:
+
+jobs:
+  run_scraper:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4
+
+      - name: Run scraping script
+        run: |
+          python scrape_results.py
+
+      - name: Run HTML generation script
+        run: |
+          python generate_html.py
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
+          git add results.json index.html # আপনার HTML ফাইলের নাম যদি index.html হয়
+          git commit -m "Auto-update lottery results" || echo "No changes to commit"
+          git push
