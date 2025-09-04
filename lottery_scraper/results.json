@@ -1,6 +1,44 @@
 {
-    "draw_date": "04/09/25",
-    "draw_time": "08:00 PM",
-    "first_prize_number": "02779",
-    "source_pdf": "https://nagalandstatelotterysambad.com/wp-content/uploads/2025/09/EN040925.pdf"
+    "lottery_results": [
+        {
+            "draw_date": "02-09-2025",
+            "draw_time": "8:00 PM",
+            "result_numbers": [
+                "11111",
+                "22222",
+                "33333",
+                "44444",
+                "55555"
+            ]
+        },
+        {
+            "draw_date": "03-09-2025",
+            "draw_time": "8:00 PM",
+            "result_numbers": [
+                "66666",
+                "77777",
+                "88888",
+                "99999",
+                "00000"
+            ]
+        },
+        {
+            "draw_date": "04-09-2025",
+            "draw_time": "1:00 PM",
+            "result_numbers": [
+                "12345",
+                "67890",
+                "54321",
+                "09876",
+                "11223"
+            ]
+        },
+        {
+            "draw_date": "04-09-2025",
+            "draw_time": "08:00 PM",
+            "result_numbers": [
+                "02779"
+            ]
+        }
+    ]
 }

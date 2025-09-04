@@ -91,7 +91,10 @@ def scrape_lottery_results():
     # তারিখ খুঁজে বের করার জন্য নতুন Regex (e.g., 04/09/25)
     date_match = re.search(r'(\d{2}/\d{2}/\d{2})', extracted_text)
     if date_match:
-        result_data["draw_date"] = date_match.group(1)
+        # তারিখের ফরম্যাটটি DD-MM-YYYY তে পরিবর্তন করা হচ্ছে
+        scraped_date = date_match.group(1)
+        day, month, year_short = scraped_date.split('/')
+        result_data["draw_date"] = f"{day}-{month}-20{year_short}"
 
     # সময় খুঁজে বের করার জন্য Regex (e.g., 08:00 PM)
     time_match = re.search(r'(\d{1,2}:\d{2}\s*(?:AM|PM))', extracted_text, re.IGNORECASE)
@@ -115,19 +118,57 @@ def scrape_lottery_results():
 
     print(f"এক্সট্র্যাক্ট করা ডেটা: {result_data}")
 
-    # ধাপ ৭: JSON ফাইলে ডেটা সংরক্ষণ করা
-    print("ডেটা results.json ফাইলে সংরক্ষণ করা হচ্ছে...")
+    # ধাপ ৭: JSON ফাইল পড়া এবং নতুন ডেটা যোগ করা
+    print("results.json ফাইল আপডেট করা হচ্ছে...")
     try:
         # Get the directory where the script is located
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        # Define the output file path relative to the script's directory
         output_path = os.path.join(script_dir, 'results.json')
 
+        # ফাইলটি পড়ার চেষ্টা করা হচ্ছে
+        try:
+            with open(output_path, 'r', encoding='utf-8') as json_file:
+                content = json_file.read()
+                if not content:
+                    data = {"lottery_results": []}
+                else:
+                    data = json.loads(content)
+        except FileNotFoundError:
+            # যদি ফাইলটি না থাকে, তবে নতুন কাঠামো তৈরি করা হচ্ছে
+            data = {"lottery_results": []}
+
+        # নতুন ফলাফলটিকে সঠিক কাঠামোতে ফরম্যাট করা হচ্ছে
+        new_entry = {
+            "draw_date": result_data["draw_date"],
+            "draw_time": result_data["draw_time"],
+            "result_numbers": [result_data["first_prize_number"]] if result_data["first_prize_number"] else []
+        }
+
+        # ডুপ্লিকেট চেক করা হচ্ছে (তারিখ এবং সময় মিলিয়ে)
+        is_duplicate = False
+        if new_entry["draw_date"] and new_entry["draw_time"]:
+            for entry in data.get("lottery_results", []):
+                if entry.get("draw_date") == new_entry["draw_date"] and entry.get("draw_time") == new_entry["draw_time"]:
+                    is_duplicate = True
+                    break
+
+        # যদি ডুপ্লিকেট না হয় এবং তারিখ থাকে, তবে নতুন ডেটা যোগ করা হচ্ছে
+        if not is_duplicate and new_entry["draw_date"]:
+            data["lottery_results"].append(new_entry)
+            print("নতুন ফলাফল যোগ করা হয়েছে।")
+        elif is_duplicate:
+            print("এই ফলাফলটি আগে থেকেই বিদ্যমান, তাই যোগ করা হয়নি।")
+        else:
+            print("কোনো বৈধ নতুন ফলাফল পাওয়া যায়নি।")
+
+        # আপডেট করা ডেটা আবার ফাইলে লেখা হচ্ছে
         with open(output_path, 'w', encoding='utf-8') as json_file:
-            json.dump(result_data, json_file, ensure_ascii=False, indent=4)
+            json.dump(data, json_file, ensure_ascii=False, indent=4)
+
         print(f"স্ক্র্যাপিং সফলভাবে সম্পন্ন হয়েছে! '{output_path}' ফাইলটি দেখুন।")
-    except IOError as e:
-        print(f"JSON ফাইলে ডেটা সংরক্ষণ করা যায়নি: {e}")
+
+    except (IOError, json.JSONDecodeError) as e:
+        print(f"JSON ফাইল পড়া বা লেখায় সমস্যা হয়েছে: {e}")
 
 
 if __name__ == "__main__":
